@@ -13,7 +13,7 @@ No rights reserved, this code is in the public domain. Do with it as you please.
 
     #import "UIDevice+UDID.h"
     
-    // later in your code
+    // ... sometime later in your code
     
     // for a true unique device identifier
     NSLog(@"UDID: %@", [[UIDevice currentDevice] UDID]);
@@ -34,6 +34,7 @@ No rights reserved, this code is in the public domain. Do with it as you please.
 The following sources provided useful code snippets for this little library:
 
 [Generating a SHA1 hash on iPhone][1]
+
 [Getting the users Mac address][2]
 
 [1]: http://stackoverflow.com/a/1084497/72176
