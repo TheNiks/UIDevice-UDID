@@ -6,8 +6,9 @@
 
 @interface UIDevice (UDID)
 
-- (NSString*) macAddressForInterface:(NSString*)interfaceNameOrNil;
+- (NSString*) macAddressForInterface:(NSString*)interfaceNameOrNil __attribute__ ((deprecated));
 - (NSString*) UDID;
 - (NSString*) UDIDWithSalt:(NSString*)salt;
+- (NSString*) cachedMacAddressOrVendorIdentifier;
 
 @end

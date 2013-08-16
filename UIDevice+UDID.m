@@ -11,9 +11,48 @@
 
 #import "NSString+SHA1.h"
 
+#undef IS_IOS7
+#define IS_IOS7()  ([[UIApplication sharedApplication] respondsToSelector:@selector(setMinimumBackgroundFetchInterval:)])
+
+//#define IS_IOS7()  (true)  // uncomment to test iOS7 behavior
+
+#define kUIDeviceMacKey  @"UIDevice+UDID:MacAddress"
+#define kUIDeviceVendorIdentifierKey @"UIDevice+UDID:identifierForVendor"
+
 @implementation UIDevice (UDID)
 
-// returns the local MAC address. 
+- (NSString*) cachedMacAddressOrVendorIdentifier
+{
+	NSString* identifierForVendor = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+	
+	if (IS_IOS7())
+	{
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		
+		// if a mac address was previously recorded, and the device it was recorded on is the current device, returns it
+		if ([defaults objectForKey:kUIDeviceMacKey] && [defaults objectForKey:kUIDeviceVendorIdentifierKey] && [[defaults objectForKey:kUIDeviceVendorIdentifierKey] isEqualToString:identifierForVendor])
+		{
+			return [defaults objectForKey:kUIDeviceMacKey];
+		}
+		
+		// else returns the identifierForVendor
+		return identifierForVendor;
+	}
+	else
+	{
+		NSString* macAddress = [self macAddressForInterface:nil];
+
+		// saves the mac address & associated identifierForVendor for future use on iOS 7
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setObject:macAddress forKey:kUIDeviceMacKey];
+		[defaults setObject:identifierForVendor forKey:kUIDeviceVendorIdentifierKey];
+		[defaults synchronize];
+		
+		return macAddress;
+	}
+}
+
+// returns the local MAC address.
 - (NSString*) macAddressForInterface:(NSString*)interfaceNameOrNil
 {
     // uses en0 as the default interface name
@@ -77,13 +116,13 @@
 // returns a 40 char string that is the sha1 hash of the user's en0 MAC address
 - (NSString*) UDID
 {
-    return [[self macAddressForInterface:nil] sha1];
+    return [[self cachedMacAddressOrVendorIdentifier] sha1];
 }
 
 // gets a salted UDID. For a per-application UDID, you could use [[NSBundle mainBundle] bundleIdentifier]
 - (NSString*) UDIDWithSalt:(NSString*)salt
 {
-  return [[NSString stringWithFormat:@"%@%@", [self macAddressForInterface:nil], salt] sha1];
+  return [[NSString stringWithFormat:@"%@%@", [self cachedMacAddressOrVendorIdentifier], salt] sha1];
 }
 
 @end
