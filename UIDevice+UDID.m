@@ -14,6 +14,9 @@
 #undef IS_IOS7
 #define IS_IOS7()  ([[UIApplication sharedApplication] respondsToSelector:@selector(setMinimumBackgroundFetchInterval:)])
 
+#undef IS_IOS6
+#define IS_IOS6()  ([[UIApplication sharedApplication] respondsToSelector:@selector(completeStateRestoration)])
+
 //#define IS_IOS7()  (true)  // uncomment to test iOS7 behavior
 
 #define kUIDeviceMacKey  @"UIDevice+UDID:MacAddress"
@@ -23,10 +26,10 @@
 
 - (NSString*) cachedMacAddressOrVendorIdentifier
 {
-	NSString* identifierForVendor = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
-	
 	if (IS_IOS7())
 	{
+		NSString* identifierForVendor = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 		
 		// if a mac address was previously recorded, and the device it was recorded on is the current device, returns it
@@ -38,8 +41,10 @@
 		// else returns the identifierForVendor
 		return identifierForVendor;
 	}
-	else
+	else if (IS_IOS6())
 	{
+		NSString* identifierForVendor = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+
 		NSString* macAddress = [self macAddressForInterface:nil];
 
 		// saves the mac address & associated identifierForVendor for future use on iOS 7
@@ -48,6 +53,11 @@
 		[defaults setObject:identifierForVendor forKey:kUIDeviceVendorIdentifierKey];
 		[defaults synchronize];
 		
+		return macAddress;
+	}
+	else
+	{
+		NSString* macAddress = [self macAddressForInterface:nil];
 		return macAddress;
 	}
 }
